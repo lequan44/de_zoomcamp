@@ -26,11 +26,17 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, year, month, target_table):
     local_file = f'green_tripdata_{year}-{month:02d}.parquet'
 
     print(f"Downloading {url}...")
-    response = requests.get(url, timeout=30)
-    response.raise_for_status()
-
-    with open(local_file, "wb") as f:
-        f.write(response.content)
+    try:
+        response = requests.get(url, stream=True, timeout=30)
+        response.raise_for_status()
+        
+        with open(local_file, "wb") as f:
+            for chunk in response.iter_content(chunk_size=1024 * 1024 ):
+                if chunk:
+                    f.write(chunk)
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading file: {e}")
+        return
     
     print("Reading parquet file...")
     parquet_file = pq.ParquetFile(local_file)
@@ -51,8 +57,8 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, year, month, target_table):
         batch_num += 1
         df_chunk = batch.to_pandas()
 
-        # Remove spaces and quotes from column names
-        df_chunk.columns = df_chunk.columns.str.replace('"', '')
+        # Remove spaces, quotes, and convert to lowercase
+        df_chunk.columns = df_chunk.columns.str.replace('"', '').str.lower()
         
         print(f"Inserting batch {batch_num} ({len(df_chunk):,} rows)...")
         

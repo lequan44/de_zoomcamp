@@ -25,15 +25,24 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, year, month, target_table):
     local_file = f'yellow_tripdata_{year}-{month:02d}.parquet'
 
     print(f"Downloading {url}...")
-    response = requests.get(url)
-    with open(local_file, "wb") as f:
-        f.write(response.content)
+    try:
+        response = requests.get(url, stream=True, timeout=30)
+        response.raise_for_status()
+        
+        with open(local_file, "wb") as f:
+            for chunk in response.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f.write(chunk)
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading file: {e}")
+        return
     
     print("Reading parquet file...")
     df = pd.read_parquet(local_file)
     
-    # Remove quotes from column names
-    df.columns = df.columns.str.replace('"', '')
+    # Remove quotes and lowercase the column names
+    df.columns = df.columns.str.replace('"', '').str.lower()
+    print(f"Columns: {list(df.columns)}")
     print(f"Read {len(df):,} rows")
     
     engine = create_engine(f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
