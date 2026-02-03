@@ -5,7 +5,6 @@
 import pandas as pd
 from sqlalchemy import create_engine, inspect
 import click
-import pyarrow.parquet as pq
 import requests
 import os
 
@@ -26,14 +25,16 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, year, month, target_table):
     local_file = f'yellow_tripdata_{year}-{month:02d}.parquet'
 
     print(f"Downloading {url}...")
-    response = requests.get(url, stream=True)
+    response = requests.get(url)
     with open(local_file, "wb") as f:
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
+        f.write(response.content)
     
     print("Reading parquet file...")
-    parquet_file = pq.ParquetFile(local_file)
+    df = pd.read_parquet(local_file)
+    
+    # Remove quotes from column names
+    df.columns = df.columns.str.replace('"', '')
+    print(f"Read {len(df):,} rows")
     
     engine = create_engine(f'postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
     
@@ -41,26 +42,14 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, year, month, target_table):
     inspector = inspect(engine)
     table_exists = inspector.has_table(target_table)
     
+    mode = 'append' if table_exists else 'replace'
     if table_exists:
         print(f"Appending to existing table '{target_table}'...")
     else:
         print(f"Creating new table '{target_table}'...")
 
-    batch_num = 0
-    for batch in parquet_file.iter_batches(batch_size=100000):
-        batch_num += 1
-        df_chunk = batch.to_pandas()
-        
-        # Remove spaces and quotes from column names
-        df_chunk.columns = df_chunk.columns.str.replace('"', '')
-        
-        print(f"Inserting batch {batch_num} ({len(df_chunk):,} rows)...")
-        
-        mode = 'append'
-        if not table_exists and batch_num == 1:
-            mode = 'replace'
-            
-        df_chunk.to_sql(name=target_table, con=engine, if_exists=mode, index=False)
+    print(f"Inserting data...")
+    df.to_sql(name=target_table, con=engine, if_exists=mode, index=False)
     
     print("Done!")
     

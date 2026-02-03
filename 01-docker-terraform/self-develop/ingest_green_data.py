@@ -26,11 +26,11 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, year, month, target_table):
     local_file = f'green_tripdata_{year}-{month:02d}.parquet'
 
     print(f"Downloading {url}...")
-    response = requests.get(url, stream=True)
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+
     with open(local_file, "wb") as f:
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:
-                f.write(chunk)
+        f.write(response.content)
     
     print("Reading parquet file...")
     parquet_file = pq.ParquetFile(local_file)
