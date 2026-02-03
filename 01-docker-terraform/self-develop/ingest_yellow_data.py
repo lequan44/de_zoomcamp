@@ -50,6 +50,10 @@ def run(pg_user, pg_pass, pg_host, pg_port, pg_db, year, month, target_table):
     for batch in parquet_file.iter_batches(batch_size=100000):
         batch_num += 1
         df_chunk = batch.to_pandas()
+        
+        # Remove spaces and quotes from column names
+        df_chunk.columns = df_chunk.columns.str.replace('"', '')
+        
         print(f"Inserting batch {batch_num} ({len(df_chunk):,} rows)...")
         
         mode = 'append'
