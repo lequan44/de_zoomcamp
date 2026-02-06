@@ -47,11 +47,12 @@ services:
     # Our base image runs without root, but the Docker Compose implementation needs root to access the Docker socket
     # To run Kestra in a rootless mode in production, see: https://kestra.io/docs/installation/podman-compose
     user: "root"
-    command: server standalone
+    command: server standalone --flow-path=/app/flows
     volumes:
       - kestra_data:/app/storage
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/kestra-wd:/tmp/kestra-wd
+      - ./flows:/app/flows
     environment:
       KESTRA_CONFIGURATION: |
         datasources:
@@ -77,6 +78,13 @@ services:
             tmpDir:
               path: /tmp/kestra-wd/tmp
           url: http://localhost:8080/
+        micronaut:
+          io:
+            watch:
+              enabled: true
+              paths:
+                - /app/flows
+              restart: false
     ports:
       - "8070:8080"
       - "8081:8081"
@@ -85,3 +93,22 @@ services:
         condition: service_started
     env_file:
       - .env_encoded
+
+  kestra-init:
+    image: kestra/kestra:v1.1
+    entrypoint: []
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo "Waiting for Kestra to be ready..."
+        sleep 10
+        echo "Importing flows recursively..."
+        find /flows -type f \( -name "*.yaml" -o -name "*.yml" \) -exec /app/kestra flows create "{}" --server=http://kestra:8080 --user=admin@kestra.io:Admin1234 \;
+        echo "Import complete."
+    volumes:
+      - ./flows:/flows
+    depends_on:
+      kestra:
+        condition: service_started
+    restart: on-failure
