@@ -49,3 +49,8 @@ terraform.rc
 
 
 credentials.json
+kestra-service-account.json
+.env_encoded
+.env
+
+
