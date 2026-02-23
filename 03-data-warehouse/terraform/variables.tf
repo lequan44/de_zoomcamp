@@ -1,5 +1,5 @@
 variable "project" {
-  default     = "de-zoomcamp-terraform-demo"
+  default     = "de-zoomcamp-dwh"
   description = "Project ID"
 }
 
