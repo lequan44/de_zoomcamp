@@ -55,5 +55,5 @@ kestra-service-account.json
 *.parquet
 *.csv.gz
 *.csv
-
+main_*
 

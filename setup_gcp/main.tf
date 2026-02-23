@@ -49,6 +49,21 @@ resource "google_storage_bucket" "nyc_taxi_bucket" {
   }
 }
 
+resource "google_storage_bucket" "nyc_taxi_bucket_csv" {
+  name          = "de_zoomcamp_03_nyc_taxi_csv"
+  location      = var.location
+  force_destroy = true
+
+  lifecycle_rule {
+    condition {
+      age = 1
+    }
+    action {
+      type = "AbortIncompleteMultipartUpload"
+    }
+  }
+}
+
 resource "google_bigquery_dataset" "nyc_taxi_dataset" {
   dataset_id = "nyc_taxi"
   location   = var.location

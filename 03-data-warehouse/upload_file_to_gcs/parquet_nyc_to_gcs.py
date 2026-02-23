@@ -12,8 +12,7 @@ Pre-reqs:
 """
 
 # services = ['fhv','green','yellow']
-init_url = 'https://github.com/DataTalksClub/nyc-tlc-data/releases/download/'
-nyc_data_url = 'https://d37ci6vzurychx.cloudfront.net/trip-data/'
+init_url = 'https://d37ci6vzurychx.cloudfront.net/trip-data/'
 # switch out the bucketname
 BUCKET = os.environ.get("GCP_GCS_BUCKET", "de_zoomcamp_03_nyc_taxi")
 
@@ -33,7 +32,7 @@ def upload_to_gcs(bucket, object_name, local_file):
     blob.upload_from_filename(local_file)
 
 
-def web_to_gcs(year, service):
+def nyc_data_to_gcs(year, service):
     for i in range(12):
         
         # sets the month part of the file_name string
@@ -41,30 +40,26 @@ def web_to_gcs(year, service):
         month = month[-2:]
 
         # csv file_name
-        file_name = f"{service}_tripdata_{year}-{month}.csv.gz"
+        file_name = f"{service}_tripdata_{year}-{month}.parquet"
 
-        # download it using requests via a pandas df
-        request_url = f"{init_url}{service}/{file_name}"
+        # download it using requests
+        request_url = f"{init_url}{file_name}"
         r = requests.get(request_url)
         open(file_name, 'wb').write(r.content)
         print(f"Local: {file_name}")
 
-        # read it back into a parquet file
-        df = pd.read_csv(file_name, compression='gzip')
+        # get row count
+        df = pd.read_parquet(file_name)
         print(f"Row count: {len(df)}")
-        os.remove(file_name)
-        file_name = file_name.replace('.csv.gz', '.parquet')
-        df.to_parquet(file_name, engine='pyarrow')
-        print(f"Parquet: {file_name}")
 
         # upload it to gcs 
-        # upload_to_gcs(BUCKET, f"{service}/{file_name}", file_name)
-        # print(f"GCS: {service}/{file_name}")
-        # os.remove(file_name)
+        upload_to_gcs(BUCKET, f"{service}/{file_name}", file_name)
+        print(f"GCS: {service}/{file_name}")    
+        os.remove(file_name)
 
 
-# web_to_gcs('2019', 'green')
-# web_to_gcs('2020', 'green')
-# web_to_gcs('2019', 'yellow')
-# web_to_gcs('2020', 'yellow')
+# nyc_data_to_gcs('2021', 'green') 
+nyc_data_to_gcs('2019', 'green')
+nyc_data_to_gcs('2020', 'green')
+
 
