@@ -1,5 +1,5 @@
 variable "project" {
-  default     = "de-zoomcamp-dwh"
+  default     = "de-zoomcamp-terraform-demo"
   description = "Project ID"
 }
 
@@ -31,9 +31,4 @@ variable "location" {
 variable "credentials" {
   default     = "./keys/credentials.json"
   description = "My Credentials"
-}
-
-variable "nyc_taxi_bucket_name" {
-  description = "My Storage bucket name"
-  default     = "quanle-nyc-taxi-data-bucket"
 }

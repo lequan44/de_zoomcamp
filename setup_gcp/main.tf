@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 7.7.0"
+      version = "~> 7.20"
     }
   }
 }
@@ -12,6 +12,7 @@ provider "google" {
   project     = var.project
   region      = var.region
 }
+
 
 # resource "google_storage_bucket" "demo_bucket" {
 #   name          = var.gcs_bucket_name
@@ -34,7 +35,7 @@ provider "google" {
 # }
 
 resource "google_storage_bucket" "nyc_taxi_bucket" {
-  name          = var.nyc_taxi_bucket_name
+  name          = "de_zoomcamp_03_nyc_taxi"
   location      = var.location
   force_destroy = true
 
