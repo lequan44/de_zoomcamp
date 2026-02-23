@@ -48,3 +48,8 @@ resource "google_storage_bucket" "nyc_taxi_bucket" {
     }
   }
 }
+
+resource "google_bigquery_dataset" "nyc_taxi_dataset" {
+  dataset_id = "nyc_taxi"
+  location   = var.location
+}
