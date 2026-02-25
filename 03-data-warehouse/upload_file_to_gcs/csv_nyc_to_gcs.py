@@ -58,14 +58,14 @@ def nyc_data_to_gcs(year, service):
         print(f"CSV: {csv_file_name}")
 
         # upload it to gcs 
-        upload_to_gcs(BUCKET, f"{service}/{csv_file_name}", csv_file_name)
-        print(f"GCS: {service}/{csv_file_name}")    
+        # upload_to_gcs(BUCKET, f"{service}/{csv_file_name}", csv_file_name)
+        # print(f"GCS: {service}/{csv_file_name}")    
         os.remove(file_name)
         os.remove(csv_file_name)
 
 
-nyc_data_to_gcs('2019', 'green')
-nyc_data_to_gcs('2020', 'green')
+# nyc_data_to_gcs('2019', 'green')
+# nyc_data_to_gcs('2020', 'green')
 # nyc_data_to_gcs('2019', 'yellow')
 # nyc_data_to_gcs('2020', 'yellow')
 # nyc_data_to_gcs('2019', 'fhv')
