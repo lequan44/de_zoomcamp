@@ -39,7 +39,7 @@ def nyc_data_to_gcs(year, service):
         month = '0'+str(i+1)
         month = month[-2:]
 
-        # csv file_name
+        # parquet file_name
         file_name = f"{service}_tripdata_{year}-{month}.parquet"
 
         # download it using requests
@@ -58,8 +58,6 @@ def nyc_data_to_gcs(year, service):
         os.remove(file_name)
 
 
-# nyc_data_to_gcs('2021', 'green') 
-nyc_data_to_gcs('2019', 'green')
-nyc_data_to_gcs('2020', 'green')
-
+nyc_data_to_gcs('2024', 'green')
+nyc_data_to_gcs('2024', 'yellow')
 
